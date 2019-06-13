@@ -1,0 +1,16 @@
+[Unit]
+Description=syncfts
+Wants=network-online.target
+After=network-online.target
+
+
+[Service]
+Type=idle
+User=badmin
+ExecStart=/usr/bin/python /home/admin/syncApp/syncFTS.py
+KillMode=mixed
+KillSignal=SIGINT
+TimeoutSec=0
+
+[Install]
+WantedBy=multi-user.target
