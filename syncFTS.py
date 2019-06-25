@@ -89,15 +89,20 @@ def localUnCopiedFileSender(myFile):
 #		myFileNames=myFileList.split('\n')
 		for myFileName in myFileNames:
 			if(len(myFileName)>1):
-				scpResult=1
+				scpResult=2
 				myFileName=myFileName.replace('\n','')
 				if(upper(myFileName[:6])=='UPLOAD'):
-					scopyResult=os.system('scp -q -o "StrictHostKeyChecking no" -o "ConnectTimeout=5" '+rootDir+str(myFileName[7:])+' '+str(remoteDCContactServerList[remoteDCContactServerCounter])+':'+rootDir+str(myFileName[7:])+'')
+					if(os.path.exists(rootDir+str(myFileName[7:]))):
+						scopyResult=os.system('scp -q -o "StrictHostKeyChecking no" -o "ConnectTimeout=5" '+rootDir+str(myFileName[7:])+' '+str(remoteDCContactServerList[remoteDCContactServerCounter])+':'+rootDir+str(myFileName[7:])+'')
+					else:
+						scopyResult=1
 				elif(upper(myFileName[:6])=='DELETE'):
 					scopyResult=os.system('ssh -q -o "StrictHostKeyChecking no" -o "ConnectTimeout=5" '+str(remoteDCContactServerList[remoteDCContactServerCounter])+' -C "rm -f '+rootDir+str(myFileName[7:])+'"')				
 #				scpResult=os.system('scp -q -o "StrictHostKeyChecking no" -o "ConnectTimeout=3" '+rootDir+str(myFileName)+' '+str(remoteDCContactServerList[remoteDCContactServerCounter])+':'+rootDir+str(myFileName.value)+'')
 				if ( scopyResult==0 ):
 					logWrite(appLogFile,' Copy OK : File -> '+maskFileName(str(myFileName))+' is proccesed. Checked from control file')
+				elif( scopyResult==1 ):
+					logWrite(appLogFile,' !!! Warning :  File is NOT exist.UPLOAD was skipped !!! -> '+rootDir+str(myFileName[7:]))
 				else:
 					myNewUnsendedFiles+=myFileName+'\n'
 					logWrite(appLogFile,'!!! scp Error !!!! File -> '+maskFileName(str(myFileName))+' is NOT proccesed !!! Checked from control file')
@@ -120,15 +125,20 @@ def remoteUnCopiedFileSender(myFile):
 			myFileNames=comResponse.split('\n')
 			for myFileName in myFileNames:
 				if(len(myFileName)>1):
-					scpResult=1
+					scpResult=2
 					myFileName=myFileName.replace('\n','')
 					if(upper(myFileName[:6])=='UPLOAD'):
-						scopyResult=os.system('scp -q -o "StrictHostKeyChecking no" -o "ConnectTimeout=5" '+rootDir+str(myFileName[7:])+' '+str(remoteDCContactServerList[remoteDCContactServerCounter])+':'+rootDir+str(myFileName[7:])+'')
+						if(os.path.exists(rootDir+str(myFileName[7:]))):
+							scopyResult=os.system('scp -q -o "StrictHostKeyChecking no" -o "ConnectTimeout=5" '+rootDir+str(myFileName[7:])+' '+str(remoteDCContactServerList[remoteDCContactServerCounter])+':'+rootDir+str(myFileName[7:])+'')
+						else:
+							scopyResult=1
 					elif(upper(myFileName[:6])=='DELETE'):
 						scopyResult=os.system('ssh -q -o "StrictHostKeyChecking no" -o "ConnectTimeout=5" '+str(remoteDCContactServerList[remoteDCContactServerCounter])+' -C "rm -f '+rootDir+str(myFileName[7:])+'"')				
 #					scpResult=os.system('scp -q -o "StrictHostKeyChecking no" -o "ConnectTimeout=3" '+rootDir+str(myFileName)+' '+str(remoteDCContactServerList[remoteDCContactServerCounter])+':'+rootDir+str(myFileName)+'')
 					if ( scopyResult==0 ):
 						logWrite(appLogFile,' Copy OK : File -> '+maskFileName(str(myFileName))+' is proccesed. Checked from remote('+str(myColleagueServer)+') control file')
+					elif( scopyResult==1 ):
+						logWrite(appLogFile,' !!! Warning :  File is NOT exist.UPLOAD was skipped !!! -> '+rootDir+str(myFileName[7:]))
 					else:
 						myNewUnsendedFiles+=myFileName+'\n'
 						logWrite(appLogFile,'!!! scp Error !!!! File -> '+maskFileName(str(myFileName))+' is NOT proccesed !!! Checked from remote('+str(myColleagueServer)+') control file')
@@ -144,6 +154,7 @@ myFileConsumer.subscribe([ftsTopicName])
 for  myFileName in myFileConsumer:
 	scopyResult=1
 	if(upper(myFileName.value[:6])=='UPLOAD'):
+		
 		scopyResult=os.system('scp -q -o "StrictHostKeyChecking no" -o "ConnectTimeout=5" '+rootDir+str(myFileName.value[7:])+' '+str(remoteDCContactServerList[remoteDCContactServerCounter])+':'+rootDir+str(myFileName.value[7:])+'')
 	elif(upper(myFileName.value[:6])=='DELETE'):
 		scopyResult=os.system('ssh -q -o "StrictHostKeyChecking no" -o "ConnectTimeout=5" '+str(remoteDCContactServerList[remoteDCContactServerCounter])+' -C "rm -f '+rootDir+str(myFileName.value[7:])+'"')
